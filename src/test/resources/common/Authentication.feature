@@ -1,10 +1,7 @@
 Feature: Authentication
 
   Background:
-    * url 'https://restful-booker.herokuapp.com'
-    * header Content-Type = 'application/json'
-    * header Accept = 'application/json'
-
+    * url baseUrl
 
   Scenario: Generate auth token
     Given path 'auth'
@@ -17,4 +14,5 @@ Feature: Authentication
       """
     When method POST
     Then status 200
+    And match response.token == '#string'
     * def token = response.token

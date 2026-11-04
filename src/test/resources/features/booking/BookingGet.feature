@@ -1,16 +1,14 @@
 Feature: Get Bookings on restful-booker
 
   Background:
-    * url 'https://restful-booker.herokuapp.com'
-    * header Content-Type = 'application/json'
-    * header Accept = 'application/json'
+    * url baseUrl
 
   Scenario: Get All Bookings
 
     Given path 'booking'
     When method GET
     Then status 200
-
+    And match each response contains { bookingid: '#number' }
 
   Scenario: Get One Booking
 
@@ -22,20 +20,8 @@ Feature: Get Bookings on restful-booker
     When method GET
     Then status 200
 
-    And match response ==
-      """
-      {
-        firstname: '#string',
-        lastname: '#string',
-        totalprice: '#number',
-        depositpaid: '#boolean',
-        bookingdates:
-        {
-          checkin: '#regex \\d{4}-\\d{2}-\\d{2}',
-          checkout: '#regex \\d{4}-\\d{2}-\\d{2}'
-        },
-        additionalneeds: '#string'
-      }
-      """
+    * def formatSchema = read('classpath:data/booking/booking-schema.json')
+    And match response == formatSchema
+    And match response == bookingCreated.bookingRequest
 
 
