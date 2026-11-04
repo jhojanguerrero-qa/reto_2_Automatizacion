@@ -1,4 +1,4 @@
-Feature: Booking
+Feature: Create success new booking
 
   Background:
     * url 'https://restful-booker.herokuapp.com'
@@ -8,58 +8,28 @@ Feature: Booking
   @create_successful_booking
   Scenario: Create new Booking
 
-    * def createBooking =
-      """
-      {
-        "firstname": "Jim",
-        "lastname": "Brown",
-        "totalprice": 111,
-        "depositpaid": false,
-        "bookingdates": {
-          "checkin": "2018-01-01",
-          "checkout": "2019-01-01"
-        },
-        "additionalneeds": "Breakfast"
-      }
-      """
+    * def bookingData = call read('classpath:common/GenerateBookingData.feature')
+    * def requestBody = read('classpath:data/booking/format-booking.json')
+    * def data = bookingData.result
+    * set requestBody.firstname = data.firstName
+    * set requestBody.lastname = data.lastName
+    * set requestBody.totalprice = data.totalPrice
+    * set requestBody.bookingdates.checkin = data.checkin
+    * set requestBody.bookingdates.checkout = data.checkout
 
     Given path 'booking'
-    And header Content-Type = 'application/json'
-    And header Accept = 'application/json'
-    And request createBooking
+    And request requestBody
     When method POST
     Then status 200
 
-    * def expectedName = createBooking .firstname
-    * def expectedLastname = createBooking .lastname
-    * def expectedTotalprice = createBooking .totalprice
-    * def expectedDepositpaid = createBooking .depositpaid
-    * def expectedBookingdatesCheckin = createBooking .bookingdates.checkin
-    * def expectedBookingdatesCheckout = createBooking .bookingdates.checkout
-    * def expectedAdditionalneeds = createBooking .additionalneeds
+    * def formatSchema = read('classpath:data/booking/create-format-booking-schema.json')
+    And match response == formatSchema
+
     * def bookingId = response.bookingid
-
-
-    And match response.booking ==
-      """
-      {
-        firstname: '#string',
-        lastname: '#string',
-        totalprice: '#number',
-        depositpaid: '#boolean',
-        bookingdates:
-        {
-          checkin: '#regex \\d{4}-\\d{2}-\\d{2}',
-          checkout: '#regex \\d{4}-\\d{2}-\\d{2}'
-        },
-        additionalneeds: '#string'
-      }
-      """
-
-    And match response.booking.firstname == expectedName
-    And match response.booking.lastname == expectedLastname
-    And match response.booking.totalprice == expectedTotalprice
-    And match response.booking.depositpaid == expectedDepositpaid
-    And match response.booking.bookingdates.checkin == expectedBookingdatesCheckin
-    And match response.booking.bookingdates.checkout == expectedBookingdatesCheckout
-    And match response.booking.additionalneeds == expectedAdditionalneeds
+    And match response.booking.firstname == requestBody .firstname
+    And match response.booking.lastname == requestBody .lastname
+    And match response.booking.totalprice == requestBody .totalprice
+    And match response.booking.depositpaid == requestBody .depositpaid
+    And match response.booking.bookingdates.checkin == requestBody .bookingdates.checkin
+    And match response.booking.bookingdates.checkout == requestBody .bookingdates.checkout
+    And match response.booking.additionalneeds == requestBody .additionalneeds
